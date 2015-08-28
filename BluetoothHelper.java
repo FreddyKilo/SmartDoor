@@ -22,7 +22,7 @@ public class BluetoothHelper {
 	public static final int SOCKET_SUCCESSFUL = 2;
 	public static final int PAIR_DEVICE_REQUEST = 10;
 	public static final int CONNECTION_FAILURE = 11;
-	private static final String DEVICE_NAME = "Smart Door v1.0";
+	private static final String DEVICE_NAME = "Open Sesame v1.0";
 	public static BluetoothAdapter mBlueToothAdapter;
 	public static BluetoothSocket mBluetoothSocket = null;
 	public static BluetoothDevice mBluetoothDevice;
@@ -42,11 +42,9 @@ public class BluetoothHelper {
 					return SETUP_SUCCESSFULL;
 				} else {
 					return PAIR_DEVICE_REQUEST;
-					//Toast.makeText(this, "Please pair your device to\nSmart Door and try again", Toast.LENGTH_SHORT).show();
 				}
 			} catch (IllegalArgumentException e) {
 				e.printStackTrace();
-				//Toast.makeText(this, "Unable to make connection", Toast.LENGTH_LONG).show();
 				return CONNECTION_FAILURE;
 			}
 		}
@@ -64,8 +62,8 @@ public class BluetoothHelper {
 				mBluetoothSocket = (BluetoothSocket) createRfcommSocket.invoke(mBluetoothDevice, 1);
 				return true;
 			} else {
-				//Toast.makeText(mContext, "Please pair your device to\nSmart Door and try again", Toast.LENGTH_SHORT).show();
 				teardown();
+				setup();
 			}
 		} catch (NoSuchMethodException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 			e.printStackTrace();

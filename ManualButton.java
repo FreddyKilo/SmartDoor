@@ -38,7 +38,21 @@ public class ManualButton extends Service {
 	 */
 	@Override
 	public void onCreate() {
-		BluetoothHelper.setup();
+		switch (BluetoothHelper.setup()) {
+		case BluetoothHelper.PAIR_DEVICE_REQUEST:
+			Toast.makeText(this, "Please pair your device to\nSmart Door and try again", Toast.LENGTH_SHORT).show();
+			break;
+			
+		case BluetoothHelper.CONNECTION_FAILURE:
+			Toast.makeText(this, "Unable to make connection", Toast.LENGTH_LONG).show();
+			break;
+
+		default:
+			break;
+		}
+//		if (BluetoothHelper.setup() == BluetoothHelper.PAIR_DEVICE_REQUEST) {
+//			Toast.makeText(this, "Please pair your device to\nSmart Door and try again", Toast.LENGTH_SHORT).show();
+//		}
 		super.onCreate();
 	}
 	
@@ -47,7 +61,10 @@ public class ManualButton extends Service {
 	 */
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
-		processLogic();
+		if (WidgetProvider.manualButtonPressed) {
+			processLogic();
+			WidgetProvider.manualButtonPressed = false;
+		}
 		return START_NOT_STICKY;
 	}
 	
@@ -67,6 +84,7 @@ public class ManualButton extends Service {
 	 * on a needed basis. If BlueToothSocket is null, createSocket() is called.
 	 */
 	public void processLogic() {
+		Log.d(TAG, "ManualButton.processLogic()");
 		if (!BluetoothHelper.mBlueToothAdapter.isEnabled() || BluetoothHelper.mBlueToothAdapter == null) {
 			noAdapterAmination(6);
 			Toast.makeText(this, "Please enable Bluetooth", Toast.LENGTH_SHORT).show();
@@ -76,15 +94,15 @@ public class ManualButton extends Service {
 				activationAmination(10);
 				handleToastMsgInRogueThread();
 				BluetoothHelper.mBlueToothAdapter.cancelDiscovery();
-				connectToBTModule();
+//				connectToBTModule();
 			} else {
 				activationAmination(4);
-				activateGarageDoor(ACTIVATE);
+//				activateGarageDoor(ACTIVATE);
 			}
-		} else {
-			if (BluetoothHelper.createSocketOK()) {
-				processLogic();
-			}
+//		} else {
+//			if (BluetoothHelper.createSocketOK()) {
+//				processLogic();
+//			}
 		}
 	}
 
@@ -235,16 +253,7 @@ public class ManualButton extends Service {
 		ComponentName thisWidget = new ComponentName(this, WidgetProvider.class);
 		int[] allWidgetIds = appWidgetManager.getAppWidgetIds(thisWidget);
 		for (int widgetId : allWidgetIds) {
-			Bundle myOptions = appWidgetManager.getAppWidgetOptions(widgetId);
-			int category = myOptions.getInt(AppWidgetManager.OPTION_APPWIDGET_HOST_CATEGORY, -1);
-			boolean isKeyguard = category == AppWidgetProviderInfo.WIDGET_CATEGORY_KEYGUARD;
-			int baseLayout;
-			if (isKeyguard) {
-				baseLayout = R.layout.keyguard_widget_layout;
-			} else {
-				baseLayout = R.layout.widget_layout;
-			}
-			appWidgetManager.updateAppWidget(widgetId, getRemoteView(drawable, baseLayout));
+			appWidgetManager.updateAppWidget(widgetId, getRemoteView(drawable, R.layout.widget_layout));
 		}
 	}
 	
@@ -256,7 +265,7 @@ public class ManualButton extends Service {
 	 */
 	private RemoteViews getRemoteView(int drawable, int layout) {
 		RemoteViews remoteViews = new RemoteViews(this.getPackageName(), layout);
-		remoteViews.setImageViewResource(R.id.button_image, drawable);
+		remoteViews.setImageViewResource(R.id.home_button_image, drawable);
 		return remoteViews;
 	}
 

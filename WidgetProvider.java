@@ -11,14 +11,18 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.RemoteViews;
+import android.widget.Toast;
 
 public class WidgetProvider extends AppWidgetProvider {
 	
 	private static final String AUTO = "com.freddykilo.smartdoor.AUTO_FUNCTION)";
 	private static final String MANUAL = "com.freddykilo.smartdoor.MANUAL_FUNCTION";
 	private static final String TAG = "test";
+	public static boolean autoButtonPressed = false;
 	public static boolean manualButtonPressed = false;
 	BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+	Intent intent1;
+	Intent intent2;
 	
 	@Override
 	public void onEnabled(Context context) {
@@ -35,17 +39,21 @@ public class WidgetProvider extends AppWidgetProvider {
 	@Override
 	public void onDisabled(Context context) {
 		Log.d(TAG, "WidgetProvider.onDisabled()");
-		Intent opener = new Intent(context, AutoButton.class);
-		context.stopService(opener);
-		Intent opener2 = new Intent(context, ManualButton.class);
-		context.stopService(opener2);
+		if (intent1 != null) {
+			context.stopService(intent1);
+		}
+		if (intent2 != null) {
+			context.stopService(intent2);
+		}
 	}
 	
 	@Override
 	public void onReceive(final Context context, Intent intent) {
-		Log.d(TAG, "WidgetProvider.onReceive()");
+		Log.d(TAG, "WidgetProvider.onReceive() " + intent.toString());
 		super.onReceive(context, intent);
 		if (intent.getAction().equals(AUTO)) {
+			Toast.makeText(context, "Auto button has been pressed", Toast.LENGTH_SHORT).show();
+			autoButtonPressed = true;
 			Intent opener = new Intent(context, AutoButton.class);
 			context.startService(opener);
 		} else if (intent.getAction().equals(MANUAL)) {
@@ -66,16 +74,7 @@ public class WidgetProvider extends AppWidgetProvider {
 		ComponentName thisWidget = new ComponentName(context, WidgetProvider.class);
 		int[] allWidgetIds = appWidgetManager.getAppWidgetIds(thisWidget);
 		for (int widgetId : allWidgetIds) {
-			Bundle myOptions = appWidgetManager.getAppWidgetOptions(widgetId);
-			int category = myOptions.getInt(AppWidgetManager.OPTION_APPWIDGET_HOST_CATEGORY, -1);
-			boolean isKeyguard = category == AppWidgetProviderInfo.WIDGET_CATEGORY_KEYGUARD;
-			int baseLayout;
-			if (isKeyguard) {
-				baseLayout = R.layout.keyguard_widget_layout;
-			} else {
-				baseLayout = R.layout.widget_layout;
-			}
-			appWidgetManager.updateAppWidget(widgetId, setIntentToRemoteView(context, baseLayout));
+			appWidgetManager.updateAppWidget(widgetId, setIntentToRemoteView(context, R.layout.widget_layout));
 		}
 	}
 	
@@ -90,14 +89,19 @@ public class WidgetProvider extends AppWidgetProvider {
 	public RemoteViews setIntentToRemoteView(Context context, int layout) {
 		Log.d(TAG, "WidgetProvider.setIntentToRemoteView()");
 		RemoteViews remoteViews = new RemoteViews(context.getPackageName(), layout);
-		Intent intent1 = new Intent(context, WidgetProvider.class);
+		
+		// Set functionality for Auto button
+		intent1 = new Intent(context, WidgetProvider.class);
 		intent1.setAction(AUTO);
 		PendingIntent pendingIntent1 = PendingIntent.getBroadcast(context, 0, intent1, 0);
-		remoteViews.setOnClickPendingIntent(R.id.button, pendingIntent1);
-		Intent intent2 = new Intent(context, WidgetProvider.class); 
+		remoteViews.setOnClickPendingIntent(R.id.auto_button, pendingIntent1);
+		
+		// Set functionality for Manual button
+		intent2 = new Intent(context, WidgetProvider.class); 
 		intent2.setAction(MANUAL);
 		PendingIntent pendingIntent2 = PendingIntent.getBroadcast(context, 0, intent2, 0);
-		remoteViews.setOnClickPendingIntent(R.id.button_2, pendingIntent2);
+		remoteViews.setOnClickPendingIntent(R.id.manual_button, pendingIntent2);
+		
 		return remoteViews;
 	}
 }

@@ -66,19 +66,50 @@ ConnectionCallbacks, OnConnectionFailedListener, LocationListener{
 	@Override
 	public void onCreate() {
 		Log.d(TAG, "AutoButton.onCreate()");
-		if (servicesOK()) {
-			createGoogleApiClient().connect();
-			BluetoothHelper.setup();
-		}
-		else{
-			stopSelf();
-		}
+//		if (servicesOK()) {
+//			createGoogleApiClient().connect();
+//			BluetoothHelper.setup();
+//		}
+//		else{
+//			stopSelf();
+//		}
 	}
+	
+	/**
+	 * Handles the UI feedback for button click, toggles location updates on or off.
+	 */
+	@Override
+	public int onStartCommand(Intent intent, int flags, int startId) {
+		
+		// let's try to catch the culprit in the act
+		Toast.makeText(this, intent.toString(), Toast.LENGTH_LONG).show();
+		Toast.makeText(this, intent.toString(), Toast.LENGTH_LONG).show();
+		
+		WidgetProvider.autoButtonPressed = false;
+		Log.d(TAG, "AutoButton.onStartCommand()");
+		if (justStarted) {
+			justStarted = false;
+			autoEnabled = true;
+			setAutoButtonImage(R.drawable.smart_door_widget_auto_activated);
+			showToast("AUTO ON", Toast.LENGTH_SHORT, R.dimen.toast_size);
+		} else if (autoEnabled) {
+			// stopLocationUpdate();
+			autoEnabled = false;
+			setAutoButtonImage(R.drawable.smart_door_widget);
+			showToast("AUTO OFF", Toast.LENGTH_SHORT, R.dimen.toast_size);
+		} else {
+			// setRequestInterval(variableRequestInterval);
+			autoEnabled = true;
+			setAutoButtonImage(R.drawable.smart_door_widget_auto_activated);
+			showToast("AUTO ON", Toast.LENGTH_SHORT, R.dimen.toast_size);
+		}
+		return START_STICKY;
+    }
 
 	@Override
 	public void onDestroy() {
 		Log.d(TAG, "AutoButton.onDestroy()");
-		cleanup();
+//		cleanup();
 		super.onDestroy();
 	}
 	
@@ -92,31 +123,6 @@ ConnectionCallbacks, OnConnectionFailedListener, LocationListener{
 		BluetoothHelper.teardown();
 	}
 	
-	/**
-	 * Handles the UI feedback for button click, toggles location updates on or off.
-	 */
-	@Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-		Log.d(TAG, "AutoButton.onStartCommand()");
-		if (justStarted) {
-			justStarted = false;
-			autoEnabled = true;
-			setAutoButtonImage(R.drawable.smart_door_widget_auto_activated);
-			showToast("AUTO ON", Toast.LENGTH_SHORT, R.dimen.toast_size);
-		} else if (autoEnabled) {
-			stopLocationUpdate();
-			autoEnabled = false;
-			setAutoButtonImage(R.drawable.smart_door_widget);
-			showToast("AUTO OFF", Toast.LENGTH_SHORT, R.dimen.toast_size);
-		} else {
-			setRequestInterval(variableRequestInterval);
-			autoEnabled = true;
-			setAutoButtonImage(R.drawable.smart_door_widget_auto_activated);
-			showToast("AUTO ON", Toast.LENGTH_SHORT, R.dimen.toast_size);
-		}	
-        return START_STICKY;
-    }
-
 	/**
 	 * Checks if device is able to connect to Google Play Services, connection is required
 	 * to be able to use LocationServices.
@@ -280,16 +286,7 @@ ConnectionCallbacks, OnConnectionFailedListener, LocationListener{
 		ComponentName thisWidget = new ComponentName(this, WidgetProvider.class);
 		int[] allWidgetIds = appWidgetManager.getAppWidgetIds(thisWidget);
 		for (int widgetId : allWidgetIds) {
-			Bundle myOptions = appWidgetManager.getAppWidgetOptions(widgetId);
-			int category = myOptions.getInt(AppWidgetManager.OPTION_APPWIDGET_HOST_CATEGORY, -1);
-			boolean isKeyguard = category == AppWidgetProviderInfo.WIDGET_CATEGORY_KEYGUARD;
-			int baseLayout;
-			if (isKeyguard) {
-				baseLayout = R.layout.keyguard_widget_layout;
-			} else {
-				baseLayout = R.layout.widget_layout;
-			}
-			appWidgetManager.updateAppWidget(widgetId, getRemoteView(drawable, baseLayout));
+			appWidgetManager.updateAppWidget(widgetId, getRemoteView(drawable, R.layout.widget_layout));
 		}
 	}
 	
@@ -301,7 +298,7 @@ ConnectionCallbacks, OnConnectionFailedListener, LocationListener{
 	 */
 	private RemoteViews getRemoteView(int drawable, int layout) {
 		RemoteViews remoteViews = new RemoteViews(this.getPackageName(), layout);
-		remoteViews.setImageViewResource(R.id.button_image, drawable);
+		remoteViews.setImageViewResource(R.id.home_button_image, drawable);
 		return remoteViews;
 	}
 
