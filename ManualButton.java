@@ -94,15 +94,15 @@ public class ManualButton extends Service {
 				activationAmination(10);
 				handleToastMsgInRogueThread();
 				BluetoothHelper.mBlueToothAdapter.cancelDiscovery();
-//				connectToBTModule();
+				connectToBTModule();
 			} else {
 				activationAmination(4);
-//				activateGarageDoor(ACTIVATE);
+				activateGarageDoor(ACTIVATE);
 			}
-//		} else {
-//			if (BluetoothHelper.createSocketOK()) {
-//				processLogic();
-//			}
+		} else {
+			if (BluetoothHelper.createSocketOK()) {
+				processLogic();
+			}
 		}
 	}
 
